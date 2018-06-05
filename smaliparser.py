@@ -8,7 +8,7 @@ import argparse
 
 file_2_method = dict()
 method_2_value = dict()
-all_url = list()
+all_url = dict()
 
 def get_methods(content):
     """
@@ -64,18 +64,19 @@ def from_const_get_value(line,all_const):
     return name_to_value
     #print(name_to_value)
 
-def find_url_inside(smali_file):
+def find_url_inside(name_file,smali_file):
     """
         get list of all url inside smali file
     """    
     url_re = "https?:\/\/[a-zA-Z0-9@:%._\+~#=/][^\s|^\"|^)]+"
     data = re.findall(url_re, smali_file)
-    # if len(data) > 0:
-        # all_url = list(set().union(all_url ,data))
-        
+    if len(data) > 0:
+        if "url" not in all_url.keys():
+            all_url["url"] =  list(set(data))
+        else:
+            all_url["url"] = list(set().union(data,all_url["url"]))
 
-
-def search_method(list_file,lock,list_method,all_url):
+def search_method(list_file,lock,list_method):
     for file in list_file:
         
         if file.endswith(".smali"):
@@ -110,7 +111,7 @@ def search_method(list_file,lock,list_method,all_url):
             #file_read = str(open(file,"r").read())
             if not file.endswith(".html"):
                 file_read = codecs.open(file,"r",encoding="utf-8",errors='ignore').read()
-                find_url_inside(file_read)
+                find_url_inside(file, file_read)
         except Exception as e:
             print("Exception file e {0}: {1} ".format(e,file))
 
@@ -146,6 +147,7 @@ def start(dir, list_method):
     print(file_2_method)
     print(method_2_value)
     time_end = time.time()
+    print(all_url["url"])
     print("Exec in {0}".format(time_end - time_start))
     # for file in files:
         # if file.endswith(".smali") :
