@@ -1,2 +1,1 @@
-Far partire thread diversi per ogni cartella all'interno così da velocizzare il processo
-Per AmazonPrime Androguard ci mette circa 1m24 mentre SmaliParse circa 1m10
+check url inside apk
