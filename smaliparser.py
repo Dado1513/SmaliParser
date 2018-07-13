@@ -68,7 +68,7 @@ def from_const_get_value(line,all_const):
 
 def find_url_inside(directory_to_search):
     """
-        get list of all url inside smali file
+        get list of all url inside apktool output dir
     """    
     url_re = "https?:\/\/[a-zA-Z0-9@:%._\+~#=/][^\s|^\"|^)]+"
     list_url = subprocess.check_output(["egrep","-r","-oh",url_re,directory_to_search]).decode('utf-8').strip()
@@ -131,14 +131,13 @@ def start(dir, list_method):
     use_grep = True
     if use_grep:
         for m in list_method:
-            output = subprocess.check_output(["grep","-rl",m,dir_apk]).decode('utf-8').strip()
+            output = subprocess.check_output(["grep", "-rl", m, dir_apk]).decode('utf-8').strip()
             list_file = list(set().union(list_file,output.split("\n")))
          
     else:
         for root, dirs, files in os.walk(dir_apk):
             for file in files:
                 list_file.append(os.path.join(root, file)) # append all file in list 
-        # list_method = ["loadUrl","addJavascriptInterface","evaluateJavaScript"]
     threads = []
     # print(len(list_file))
     numero_thread_max = int(len(list_file) / 50) # ogni thread analizza 50 file
