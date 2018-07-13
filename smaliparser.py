@@ -5,6 +5,7 @@ import threading
 import codecs
 import time
 import argparse
+import subprocess
 
 file_2_method = dict()
 method_2_value = dict()
@@ -127,13 +128,20 @@ def start(dir, list_method):
     threadLock = threading.Lock()
     list_file = list()
     dir_apk = dir
-    for root, dirs, files in os.walk(dir_apk):
-        for file in files:
-            list_file.append(os.path.join(root, file)) # append all file in list 
-    # list_method = ["loadUrl","addJavascriptInterface","evaluateJavaScript"]
+    use_grep = True
+    if use_grep:
+        output = subprocess.check_output(["grep","-r","loadUrl(",dir_apk]).decode('utf-8').strip()
+        list_output = output.split("\n")
+        list_file = [x.split(":",1)[0] for x in list_output]
+
+    else:
+        for root, dirs, files in os.walk(dir_apk):
+            for file in files:
+                list_file.append(os.path.join(root, file)) # append all file in list 
+        # list_method = ["loadUrl","addJavascriptInterface","evaluateJavaScript"]
     threads = []
     # print(len(list_file))
-    numero_thread_max = int(len(list_file) / 50) # ogni thread analizza 100 file
+    numero_thread_max = int(len(list_file) / 50) # ogni thread analizza 50 file
     print("thread creati: {0}".format(numero_thread_max))
     for i in range(0,numero_thread_max):
         if i < numero_thread_max -1:
