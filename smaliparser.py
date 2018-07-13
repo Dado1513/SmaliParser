@@ -65,17 +65,17 @@ def from_const_get_value(line,all_const):
     return name_to_value
     #print(name_to_value)
 
-def find_url_inside(name_file,smali_file):
+
+def find_url_inside(directory_to_search):
     """
         get list of all url inside smali file
     """    
     url_re = "https?:\/\/[a-zA-Z0-9@:%._\+~#=/][^\s|^\"|^)]+"
-    data = re.findall(url_re, smali_file)
-    if len(data) > 0:
-        if "url" not in all_url.keys():
-            all_url["url"] =  list(set(data))
-        else:
-            all_url["url"] = list(set().union(data,all_url["url"]))
+    list_url = subprocess.check_output(["egrep","-r","-oh",url_re,directory_to_search]).decode('utf-8').strip()
+    list_url =  list_url.split()
+    list_url = list(set(list_url))
+    list_url = [x for x in list_url if x.startswith("http") or x.startswith("https")]
+    all_url["url"] = list_url
 
 def search_method(list_file,lock,list_method):
     for file in list_file:
@@ -108,13 +108,13 @@ def search_method(list_file,lock,list_method):
                                 
                             # lock.release()
                             # print()
-        try:
-            #file_read = str(open(file,"r").read())
-            if not file.endswith(".html"):
-                file_read = codecs.open(file,"r",encoding="utf-8",errors='ignore').read()
-                find_url_inside(file, file_read)
-        except Exception as e:
-            print("Exception file e {0}: {1} ".format(e,file))
+        # try:
+        #     #file_read = str(open(file,"r").read())
+        #     if not file.endswith(".html"):
+        #         file_read = codecs.open(file,"r",encoding="utf-8",errors='ignore').read()
+        #         find_url_inside(file, file_read)
+        # except Exception as e:
+        #     print("Exception file e {0}: {1} ".format(e,file))
 
 
 def start(dir, list_method):
@@ -130,10 +130,10 @@ def start(dir, list_method):
     dir_apk = dir
     use_grep = True
     if use_grep:
-        output = subprocess.check_output(["grep","-r","loadUrl(",dir_apk]).decode('utf-8').strip()
-        list_output = output.split("\n")
-        list_file = [x.split(":",1)[0] for x in list_output]
-
+        for m in list_method:
+            output = subprocess.check_output(["grep","-rl",m,dir_apk]).decode('utf-8').strip()
+            list_file = list(set().union(list_file,output.split("\n")))
+         
     else:
         for root, dirs, files in os.walk(dir_apk):
             for file in files:
@@ -154,6 +154,7 @@ def start(dir, list_method):
         t.join()
     print(file_2_method)
     print(method_2_value)
+    find_url_inside(dir_apk)
     time_end = time.time()
     print(all_url["url"])
     print("Exec in {0}".format(time_end - time_start))
