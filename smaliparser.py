@@ -68,7 +68,7 @@ def from_const_get_value(line,all_const):
 
 def find_url_inside(directory_to_search):
     """
-        get list of all url inside apktool output dir
+        get list of all url inside smali file
     """    
     url_re = "https?:\/\/[a-zA-Z0-9@:%._\+~#=/][^\s|^\"|^)]+"
     list_url = subprocess.check_output(["egrep","-r","-oh",url_re,directory_to_search]).decode('utf-8').strip()
@@ -131,13 +131,14 @@ def start(dir, list_method):
     use_grep = True
     if use_grep:
         for m in list_method:
-            output = subprocess.check_output(["grep", "-rl", m, dir_apk]).decode('utf-8').strip()
+            output = subprocess.check_output(["grep","-rl",m,dir_apk]).decode('utf-8').strip()
             list_file = list(set().union(list_file,output.split("\n")))
          
     else:
         for root, dirs, files in os.walk(dir_apk):
             for file in files:
                 list_file.append(os.path.join(root, file)) # append all file in list 
+        # list_method = ["loadUrl","addJavascriptInterface","evaluateJavaScript"]
     threads = []
     # print(len(list_file))
     numero_thread_max = int(len(list_file) / 50) # ogni thread analizza 50 file
@@ -151,11 +152,18 @@ def start(dir, list_method):
         threads.append(thread)
     for t in threads:
         t.join()
-    print(file_2_method)
-    print(method_2_value)
-    find_url_inside(dir_apk)
-    time_end = time.time()
-    print(all_url["url"])
+    
+    # print(file_2_method) # per ogni file i metodi all'interno
+    print(method_2_value) # per ogni metodo un dizionario che comprende tutti i valori passati come parametri
+    for keys in method_2_value.keys(): # per ogni metodo
+        values = method_2_value[keys] # prendo tutta la lista dei vari parametri
+        print("Method: {0}".format(keys))
+        for value in values: # per ogni dizionario di parametri
+            print(list(value.values()))
+
+    find_url_inside(dir_apk) # tutte le url all'interno dell'apk (fare un thread separato)
+    print(all_url["url"]) # tutte le url all'interno dell'apk
+    time_end = time.time() 
     print("Exec in {0}".format(time_end - time_start))
     # for file in files:
         # if file.endswith(".smali") :
