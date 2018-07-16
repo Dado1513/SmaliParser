@@ -117,18 +117,22 @@ def search_method(list_file,lock,list_method):
         #     print("Exception file e {0}: {1} ".format(e,file))
 
 
-def start(dir, list_method):
+def start(dir, list_method, use_grep=True):
     
     """
         Smali Parser that be able to parsing smali code
         and to get when method "method" has been used and the 
         how parameter has been passed inside or if that method has been called
     """
+    
     time_start = time.time()
     threadLock = threading.Lock()
     list_file = list()
     dir_apk = dir
-    use_grep = True
+    
+    thread_url = threading.Thread(target=find_url_inside, args=(dir_apk,))
+    thread_url.start()
+    
     if use_grep:
         for m in list_method:
             output = subprocess.check_output(["grep","-rl",m,dir_apk]).decode('utf-8').strip()
@@ -138,11 +142,11 @@ def start(dir, list_method):
         for root, dirs, files in os.walk(dir_apk):
             for file in files:
                 list_file.append(os.path.join(root, file)) # append all file in list 
-        # list_method = ["loadUrl","addJavascriptInterface","evaluateJavaScript"]
     threads = []
-    # print(len(list_file))
+    threads.append(thread_url)
+    
     numero_thread_max = int(len(list_file) / 50) # ogni thread analizza 50 file
-    print("thread creati: {0}".format(numero_thread_max))
+    
     for i in range(0,numero_thread_max):
         if i < numero_thread_max -1:
             thread = threading.Thread(target=search_method,args=(list_file[i*numero_thread_max:(i+1)*numero_thread_max-1],threadLock,list_method,))
@@ -150,23 +154,23 @@ def start(dir, list_method):
             thread = threading.Thread(target=search_method,args=(list_file[i*numero_thread_max:],threadLock,list_method,))
         thread.start()
         threads.append(thread)
+    
     for t in threads:
         t.join()
     
-    # print(file_2_method) # per ogni file i metodi all'interno
-    print(method_2_value) # per ogni metodo un dizionario che comprende tutti i valori passati come parametri
+    m_2_v = dict()
     for keys in method_2_value.keys(): # per ogni metodo
         values = method_2_value[keys] # prendo tutta la lista dei vari parametri
-        print("Method: {0}".format(keys))
+        m_2_v[keys] = list()
+        # print("Method: {0}".format(keys))
         for value in values: # per ogni dizionario di parametri
-            print(list(value.values()))
+            m_2_v[keys] = list(set().union(list(value.values()), m_2_v[keys]))
+        # print(m_2_v[keys])
 
-    find_url_inside(dir_apk) # tutte le url all'interno dell'apk (fare un thread separato)
     print(all_url["url"]) # tutte le url all'interno dell'apk
     time_end = time.time() 
     print("Exec in {0}".format(time_end - time_start))
-    # for file in files:
-        # if file.endswith(".smali") :
+    return m_2_v, all_url["url"]
 
 def main():
     parser = argparse.ArgumentParser(description="Smali Parser that search if method was used and with how parameter",
