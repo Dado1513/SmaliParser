@@ -71,6 +71,7 @@ def find_url_inside(directory_to_search):
         get list of all url inside smali file
     """    
     url_re = "https?:\/\/[a-zA-Z0-9@:%._\+~#=/][^\s|^\"|^)]+"
+    #url_re = "https?:\/\/.*"
     list_url = subprocess.check_output(["egrep","-r","-oh",url_re,directory_to_search]).decode('utf-8').strip()
     list_url =  list_url.split()
     list_url = list(set(list_url))
@@ -129,15 +130,16 @@ def start(dir, list_method, use_grep=True):
     threadLock = threading.Lock()
     list_file = list()
     dir_apk = dir
-    
     thread_url = threading.Thread(target=find_url_inside, args=(dir_apk,))
     thread_url.start()
     
     if use_grep:
         for m in list_method:
-            output = subprocess.check_output(["grep","-rl",m,dir_apk]).decode('utf-8').strip()
-            list_file = list(set().union(list_file,output.split("\n")))
-         
+            try:
+                output = subprocess.check_output(["grep","-rl",m,dir_apk]).decode('utf-8').strip()
+                list_file = list(set().union(list_file,output.split("\n")))
+            except:
+                pass
     else:
         for root, dirs, files in os.walk(dir_apk):
             for file in files:
@@ -146,7 +148,6 @@ def start(dir, list_method, use_grep=True):
     threads.append(thread_url)
     
     numero_thread_max = int(len(list_file) / 50) # ogni thread analizza 50 file
-    
     for i in range(0,numero_thread_max):
         if i < numero_thread_max -1:
             thread = threading.Thread(target=search_method,args=(list_file[i*numero_thread_max:(i+1)*numero_thread_max-1],threadLock,list_method,))
@@ -167,9 +168,9 @@ def start(dir, list_method, use_grep=True):
             m_2_v[keys] = list(set().union(list(value.values()), m_2_v[keys]))
         # print(m_2_v[keys])
 
-    print(all_url["url"]) # tutte le url all'interno dell'apk
+    # print(all_url["url"]) # tutte le url all'interno dell'apk
     time_end = time.time() 
-    print("Exec in {0}".format(time_end - time_start))
+    # print("Exec in {0}".format(time_end - time_start))
     return m_2_v, all_url["url"]
 
 def main():
