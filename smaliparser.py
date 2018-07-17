@@ -70,7 +70,7 @@ def find_url_inside(directory_to_search):
     """
         get list of all url inside smali file
     """    
-    url_re = "https?:\/\/[a-zA-Z0-9@:%._\+~#=/][^\s|^\"|^)]+"
+    url_re = '\b(https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]*[-A-Za-z0-9+&@#/%=~_|]\b'
     #url_re = "https?:\/\/.*"
     list_url = subprocess.check_output(["egrep","-Eorh",url_re,directory_to_search]).decode('utf-8').strip()
     list_url =  list_url.split()
