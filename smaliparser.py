@@ -75,7 +75,7 @@ def find_url_inside(directory_to_search):
     list_url = subprocess.check_output(["egrep","-Eorh",url_re,directory_to_search]).decode('utf-8').strip()
     list_url =  list_url.split()
     list_url = list(set(list_url))
-    list_url = [x for x in list_url if x.startswith("http") or x.startswith("https")]
+    list_url = [x for x in list_url if x.startswith("http") or x.startswith("https") or x.startswith("file:")]
     all_url["url"] = list_url
 
 def search_method(list_file,lock,list_method):
