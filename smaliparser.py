@@ -72,7 +72,7 @@ def find_url_inside(directory_to_search):
     """    
     url_re = "https?:\/\/[a-zA-Z0-9@:%._\+~#=/][^\s|^\"|^)]+"
     #url_re = "https?:\/\/.*"
-    list_url = subprocess.check_output(["egrep","-r","-oh",url_re,directory_to_search]).decode('utf-8').strip()
+    list_url = subprocess.check_output(["egrep","-Eorh",url_re,directory_to_search]).decode('utf-8').strip()
     list_url =  list_url.split()
     list_url = list(set(list_url))
     list_url = [x for x in list_url if x.startswith("http") or x.startswith("https")]
