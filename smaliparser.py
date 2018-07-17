@@ -138,8 +138,8 @@ def start(dir, list_method, use_grep=True):
             try:
                 output = subprocess.check_output(["grep","-rl",m,dir_apk]).decode('utf-8').strip()
                 list_file = list(set().union(list_file,output.split("\n")))
-            except:
-                pass
+            except Exception:
+                pass    
     else:
         for root, dirs, files in os.walk(dir_apk):
             for file in files:
@@ -148,14 +148,19 @@ def start(dir, list_method, use_grep=True):
     threads.append(thread_url)
     
     numero_thread_max = int(len(list_file) / 50) # ogni thread analizza 50 file
-    for i in range(0,numero_thread_max):
-        if i < numero_thread_max -1:
-            thread = threading.Thread(target=search_method,args=(list_file[i*numero_thread_max:(i+1)*numero_thread_max-1],threadLock,list_method,))
-        else:
-            thread = threading.Thread(target=search_method,args=(list_file[i*numero_thread_max:],threadLock,list_method,))
+    if numero_thread_max == 0:
+        thread = threading.Thread(target=search_method,args=(list_file,threadLock,list_method,))
         thread.start()
         threads.append(thread)
-    
+    else:
+        for i in range(0,numero_thread_max):
+            if i < numero_thread_max -1:
+                thread = threading.Thread(target=search_method,args=(list_file[i*numero_thread_max:(i+1)*numero_thread_max-1],threadLock,list_method,))
+            else:
+                thread = threading.Thread(target=search_method,args=(list_file[i*numero_thread_max:],threadLock,list_method,))
+            thread.start()
+            threads.append(thread)
+        
     for t in threads:
         t.join()
     
@@ -181,8 +186,9 @@ def main():
     parser.add_argument('-d','--dir',help=" Dir to analyze",required=True)
     args = parser.parse_args()
 
-    start(args.dir, args.methods)
-    
+    m2v,url = start(args.dir, args.methods)
+    print(m2v)
+    print(url)
 
 if __name__ == "__main__":
     main()
